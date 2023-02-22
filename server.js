@@ -17,13 +17,14 @@ const bootcamps = require("./routes/bootcamps");
 
 const app = express();
 
+// Body parser
+app.use(express.json())
+
 // Dev logging middleware -> morgan(format, options)
 // Create a new morgan logger middleware function using the given format and options
 // 미리 정의된 포맷중에 dev 사용
 // :method :url :status :response-time ms - :res[content-length]
 if (process.env.NODE_ENV === 'development') {
-
-  console.log(">>>morgae", morgan('dev'))
   app.use(morgan('dev'));
 }
 // app.use(logger);
