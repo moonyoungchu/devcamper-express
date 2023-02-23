@@ -2,7 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const colors = require("colors");
-
+const errorHandler = require('./middleware/error')
 const logger = require("./middleware/logger");
 const connectDB = require("./config/db");
 
@@ -24,6 +24,7 @@ app.use(express.json())
 // Create a new morgan logger middleware function using the given format and options
 // 미리 정의된 포맷중에 dev 사용
 // :method :url :status :response-time ms - :res[content-length]
+// ex) GET /api/v1/bootcamps 200 67.819 ms - 1303
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -32,11 +33,16 @@ if (process.env.NODE_ENV === 'development') {
 // Mount routers
 app.use("/api/v1/bootcamps", bootcamps);
 
+// error handle
+app.use(errorHandler);
+
+
+
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(
   PORT,
-  console.log(`>>>Server mode ${process.env.NODE_ENV} and PORT ${process.env.PORT}`.yellow.bold)
+  console.log(`>>>Server mode: ${process.env.NODE_ENV} / PORT: ${process.env.PORT}`.yellow.bold)
 );
 
 // Handle undandled promise rejections
