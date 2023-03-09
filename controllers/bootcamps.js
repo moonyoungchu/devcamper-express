@@ -7,8 +7,15 @@ const geocoder = require("../utils/geocoder");
 // @route       GET /api/v1/bootcamps
 // @accees      Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.find();
-  res.status(200).json({ success: true, data: bootcamp });
+  
+  let queryStr = JSON.stringify(req.query);
+
+  //Syntax: { field: { $lte: value } }
+  // $lte : selects the documents where the value of the field is less than or equal to (i.e. <=) the specified value.
+  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+
+  const bootcamps = await Bootcamp.find(JSON.parse(queryStr));
+  res.status(200).json({ success: true, data: bootcamps });
 });
 
 // @desc        Get single bootcamps
