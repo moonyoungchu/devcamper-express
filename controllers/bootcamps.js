@@ -7,14 +7,40 @@ const geocoder = require("../utils/geocoder");
 // @route       GET /api/v1/bootcamps
 // @accees      Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-  
-  let queryStr = JSON.stringify(req.query);
+  let query;
+
+  // Copy req.query
+  const reqQuery = { ...req.query };
+
+  // 파라미터에 들어가지 않도록 delete 처리
+  const removeFields = ["select","sort"];
+  removeFields.forEach((param) => delete reqQuery[param]);
+
+  let queryStr = JSON.stringify(reqQuery);
 
   //Syntax: { field: { $lte: value } }
   // $lte : selects the documents where the value of the field is less than or equal to (i.e. <=) the specified value.
-  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+  queryStr = queryStr.replace(
+    /\b(gt|gte|lt|lte|in)\b/g,
+    (match) => `$${match}`
+  );
 
-  const bootcamps = await Bootcamp.find(JSON.parse(queryStr));
+  // Finding resourse
+  query = Bootcamp.find(JSON.parse(queryStr));
+
+  // Select Fields
+  if (req.query.select) {
+    const fields = req.query.select.split(",").join(" ");
+    query = query.select(fields);
+  }
+
+  // Sort
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    query = query.sort(sortBy);
+  }
+
+  const bootcamps = await query;
   res.status(200).json({ success: true, data: bootcamps });
 });
 
