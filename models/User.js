@@ -43,12 +43,15 @@ UserSchema.pre("save", async function (next) {
 
 // Token
 UserSchema.methods.getSignedJwtToken = function () {
-
   //https://github.com/auth0/node-jsonwebtoken
   //jwt.sign(payload, secretOrPrivateKey, [options, callback])
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
+
+UserSchema.methods.matchPassword = async function(enteredPassword){
+  return await bcrypt.compare(enteredPassword, this.password);
+}
 
 module.exports = mongoose.model("User", UserSchema);
