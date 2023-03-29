@@ -9,7 +9,7 @@ const {
 } = require("../controllers/bootcamps");
 const router = express.Router();
 
-const {protect} = require('../middleware/auth');
+const {protect, authorize} = require('../middleware/auth');
 
 router.route('/radius/:zipcode/:distance').get(getBootcampsInRadius)
 
@@ -22,7 +22,7 @@ router
   .route("/:id")
   .get(getBootcamp)
   .put(protect,updateBootcamps)
-  .delete(protect,deleteBootcamps);
+  .delete(protect,authorize('publisher'), deleteBootcamps);
 
 // router.get("/", (req, res) => {
 //   res.status(200).json({ success: true, msg: "show all " });
