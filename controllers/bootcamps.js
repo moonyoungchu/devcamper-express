@@ -13,7 +13,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
   const reqQuery = { ...req.query };
 
   // 파라미터에 들어가지 않도록 delete 처리
-  const removeFields = ["select","sort"];
+  const removeFields = ["select", "sort"];
   removeFields.forEach((param) => delete reqQuery[param]);
 
   let queryStr = JSON.stringify(reqQuery);
@@ -62,6 +62,20 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
 // @route       POST /api/v1/bootcamps
 // @accees      Private
 exports.createBootcamps = asyncHandler(async (req, res, next) => {
+  //req.body에 user 추가
+  req.body.user = req.user.id;
+
+  const publishedBootcamp = await Bootcamp.findOne({ user: req.user.id });
+
+  if (publishedBootcamp && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `The user with ID ${req.user.id} has already published a bootcamp`,
+        400
+      )
+    );
+  }
+
   const bootcamp = await Bootcamp.create(req.body);
   res.status(201).json({ success: true, data: bootcamp });
 });
