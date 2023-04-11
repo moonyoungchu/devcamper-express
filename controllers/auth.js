@@ -71,3 +71,23 @@ exports.getMe = asyncHandler(async (req, res, next) => {
     data: user,
   });
 });
+
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+
+  if (!user) {
+    return next(new ErrorResponse("이 이메일의 유저가 없다", 404));
+  }
+
+  //Get reset token
+  const resetToken = user.getResetPasswordToken();
+
+  await user.save({ validateBeforeSave: false });
+
+  console.log(">>>resestToken", resetToken);
+
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
