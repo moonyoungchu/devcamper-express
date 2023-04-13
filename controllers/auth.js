@@ -1,6 +1,7 @@
+const crypto = require("crypto");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
-const sendEmail = require('../utils/sendEmail');
+const sendEmail = require("../utils/sendEmail");
 const User = require("../models/User");
 
 exports.register = asyncHandler(async (req, res, next) => {
@@ -93,13 +94,12 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 // @route     POST /api/v1/auth/forgotpassword
 exports.forgotPassword = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
 
   if (!user) {
-    return next(new ErrorResponse('There is no user with that email', 404));
+    return next(new ErrorResponse("There is no user with that email", 404));
   }
 
   // Get reset token
@@ -109,7 +109,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
   // Create reset url
   const resetUrl = `${req.protocol}://${req.get(
-    'host'
+    "host"
   )}/api/v1/auth/resetpassword/${resetToken}`;
 
   const message = `리퀘스트 비밀번호 메일입니다... Please make a PUT request to: \n\n ${resetUrl}`;
@@ -117,11 +117,11 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   try {
     await sendEmail({
       email: user.email,
-      subject: 'Password reset token',
-      message
+      subject: "Password reset token",
+      message,
     });
 
-    res.status(200).json({ success: true, data: 'Email sent' });
+    res.status(200).json({ success: true, data: "Email sent" });
   } catch (err) {
     console.log(err);
     user.resetPasswordToken = undefined;
@@ -129,6 +129,33 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
     await user.save({ validateBeforeSave: false });
 
-    return next(new ErrorResponse('Email could not be sent', 500));
+    return next(new ErrorResponse("Email could not be sent", 500));
   }
+});
+
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  // Get hashed token
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resettoken)
+    .digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new ErrorResponse("Invalid token", 400));
+  }
+
+  console.log(">>>req.body.password",req.body.password)
+
+  // 새로운 비밀번호 셋팅
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
 });
