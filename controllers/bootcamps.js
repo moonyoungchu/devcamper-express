@@ -26,7 +26,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
   );
 
   // Finding resourse
-  query = Bootcamp.find(JSON.parse(queryStr));
+  query = Bootcamp.find(JSON.parse(queryStr)).populate('courses');
 
   // Select Fields
   if (req.query.select) {
@@ -132,7 +132,7 @@ exports.deleteBootcamps = asyncHandler(async (req, res, next) => {
     );
   }
 
-  bootcamp.remove();
+  bootcamp.remove();//cascade
   
   res.status(200).json({ success: true, data: {} });
 });

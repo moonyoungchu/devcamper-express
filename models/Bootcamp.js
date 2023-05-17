@@ -137,4 +137,19 @@ BootcampSchema.pre("save", async function (next) {
   next();
 });
 
+// Cascade > when bootcamp 삭제되면 course 삭제
+BootcampSchema.pre('remove', async function(next) {
+  console.log(`Courses being removed from bootcamp ${this._id}`);
+  await this.model('Course').deleteMany({ bootcamp: this._id });
+  next();
+});
+
+// 역으로 채우기 (가상으로)
+BootcampSchema.virtual('courses', { 
+  ref: 'Course',
+  localField: '_id',
+  foreignField: 'bootcamp',
+  justOne: false
+});
+
 module.exports = mongoose.model("Bootcamp", BootcampSchema);
